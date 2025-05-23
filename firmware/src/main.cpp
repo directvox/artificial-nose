@@ -285,7 +285,12 @@ CircularBuffer<float, EI_CLASSIFIER_DSP_INPUT_FRAME_SIZE> buffer;
 uint64_t next_sampling_tick = micros();
 
 #define INITIAL_FAN_STATE LOW
-static int fan_state = INITIAL_FAN_STATE;
+// static int fan_state = INITIAL_FAN_STATE;
+uint8_t current_fan_speed_level = 0; // 0: Off, 1: Low, 2: Medium, 3: High
+const int FAN_PWM_OFF = 0;
+const int FAN_PWM_LOW = 20;
+const int FAN_PWM_MEDIUM = 100;
+const int FAN_PWM_HIGH = 200;
 
 static bool debug_nn = false; // Set this to true to see e.g. features generated
                               // from the raw signal
@@ -294,6 +299,7 @@ void draw_chart();
 
 enum class ButtonId
 {
+  A,
   C,
   LEFT,
   RIGHT,
@@ -341,14 +347,34 @@ static void ButtonEventHandler(AceButton *button, uint8_t eventType, uint8_t but
 
   switch (eventType) {
     case AceButton::kEventReleased:
-      switch (static_cast<ButtonId>(id)) {
-        case ButtonId::C:
-          // Toggle Fan
-          fan_state = (fan_state == HIGH) ? LOW : HIGH ; 
-          digitalWrite(D0, fan_state); // Turn fan ON
-          break;
-        case ButtonId::PRESS:
-          mode = (mode == INFERENCE) ? TRAINING : INFERENCE;
+      // Handle Button A press for fan control
+      if (static_cast<ButtonId>(id) == ButtonId::A) {
+        if (current_fan_speed_level == 0) { // Currently Off
+            current_fan_speed_level = 1; // Set to Low
+            analogWrite(D0, FAN_PWM_LOW);
+        } else if (current_fan_speed_level == 1) { // Currently Low
+            current_fan_speed_level = 2; // Set to Medium
+            analogWrite(D0, FAN_PWM_MEDIUM);
+        } else if (current_fan_speed_level == 2) { // Currently Medium
+            current_fan_speed_level = 3; // Set to High
+            analogWrite(D0, FAN_PWM_HIGH);
+        } else { // Currently High (or any other state, cycle back to Off)
+            current_fan_speed_level = 0; // Set to Off
+            analogWrite(D0, FAN_PWM_OFF);
+        }
+      } 
+      // Handle other buttons
+      else { // <<< Add else here to ensure Button A logic is separate
+        switch (static_cast<ButtonId>(id)) {
+          case ButtonId::C:
+            // Toggle Fan (This logic will be removed or changed in a later step)
+            // For now, let's comment it out to avoid conflict and make it clear
+            // that Button A is now the primary fan control.
+            // fan_state = (fan_state == HIGH) ? LOW : HIGH ; 
+            // digitalWrite(D0, fan_state); // Turn fan ON
+            break;
+          case ButtonId::PRESS:
+            mode = (mode == INFERENCE) ? TRAINING : INFERENCE;
           spr.pushSprite(0, 0);
           break;
         case ButtonId::LEFT:
@@ -378,6 +404,8 @@ static void ButtonEventHandler(AceButton *button, uint8_t eventType, uint8_t but
 
 static void ButtonInit()
 {
+  Buttons[static_cast<int>(ButtonId::A)].init(
+    WIO_KEY_A, HIGH, static_cast<uint8_t>(ButtonId::A));
   Buttons[static_cast<int>(ButtonId::C)].init(
     WIO_KEY_C, HIGH, static_cast<uint8_t>(ButtonId::C));
   Buttons[static_cast<int>(ButtonId::LEFT)].init(
@@ -435,7 +463,7 @@ void setup()
   ButtonInit();
 
   pinMode(D0, OUTPUT);
-  digitalWrite(D0, INITIAL_FAN_STATE);
+  analogWrite(D0, FAN_PWM_OFF);
 
   gas->begin(Wire, 0x08); // use the hardware I2C
 
