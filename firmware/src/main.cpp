@@ -933,7 +933,7 @@ static void processAndSendEdgeImpulseBatch(uint64_t iat_timestamp, int readings_
     if (http.begin(client, server_url)) { // HTTPS by default with WiFiClientSecure
         http.addHeader("x-api-key", EDGE_IMPULSE_API_KEY);
         http.addHeader("x-label", EDGE_IMPULSE_LABEL);
-        String filename = String("WIO_TERMINAL_") + String(iat_timestamp) + ".json";
+        String filename = String("WIO_TERMINAL_") + String((unsigned long)iat_timestamp) + ".json";
         http.addHeader("x-file-name", filename.c_str()); // Ensure .c_str() if needed
         http.addHeader("Content-Type", "application/json");
         // http.setReuse(true); // Optional: for keep-alive if sending frequently

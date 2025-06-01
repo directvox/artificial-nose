@@ -41,7 +41,7 @@ void Storage::Load()
 		IdScope = str[2].c_str();
 		RegistrationId = str[3].c_str();
 		SymmetricKey = str[4].c_str();
-		if (str[5].len > 0) { // Basic check if the 6th string was populated
+		if (str[5].size() > 0) { // Basic check if the 6th string was populated
 		    EdgeImpulseHmacKey = str[5].c_str();
 		} else {
 		    EdgeImpulseHmacKey = ""; // Default if not found or empty
