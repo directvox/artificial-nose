@@ -288,8 +288,8 @@ uint64_t next_sampling_tick = micros();
 // static int fan_state = INITIAL_FAN_STATE;
 uint8_t current_fan_speed_level = 0; // 0: Off, 1: Low, 2: Medium, 3: High
 const int FAN_PWM_OFF = 0;
-const int FAN_PWM_LOW = 20;
-const int FAN_PWM_MEDIUM = 100;
+const int FAN_PWM_LOW = 100;
+const int FAN_PWM_MEDIUM = 150;
 const int FAN_PWM_HIGH = 200;
 
 static bool debug_nn = false; // Set this to true to see e.g. features generated
